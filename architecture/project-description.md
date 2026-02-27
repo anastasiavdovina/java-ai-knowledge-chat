@@ -183,22 +183,7 @@ DELETE /api/groups/{id}/members/{uid} # Remove member
 POST   /api/groups/{id}/drives        # Connect drive to group
 ```
 
-## 9. Инфраструктура
-
-### Docker Compose
-```yaml
-services:
-  backend:    # Spring Boot app (port 8080)
-  frontend:   # React app (port 3000, nginx)
-  postgres:   # PostgreSQL 16 + pgvector (port 5432)
-```
-
-### Среда разработки
-- **Git** — GitLab на арендованном сервере
-- **CI/CD** — GitLab CI (lint, test, build, deploy)
-- **Деплой** — Docker Compose на арендованном сервере
-
-## 10. Оценка трудозатрат
+## 9. Оценка трудозатрат
 
 | Задача | Оценка (ч-ч) |
 |--------|-------------|
