@@ -1,0 +1,137 @@
+specification {
+  element actor {
+    style {
+      shape person
+    }
+  }
+  element system {
+    style {
+      shape rectangle
+    }
+  }
+  element container {
+    style {
+      shape rectangle
+    }
+  }
+  element component {
+    style {
+      shape rectangle
+    }
+  }
+  element database {
+    style {
+      shape storage
+    }
+  }
+  element external {
+    style {
+      shape rectangle
+      color muted
+    }
+  }
+
+  relationship async
+  relationship sync
+}
+
+model {
+  actor user 'User' {
+    description 'Individual or group member who interacts with the system'
+  }
+
+  system aiChat 'AI Knowledge Base Chat' {
+    description 'System for AI-powered Q&A over documents from cloud storage'
+
+    container frontend 'Web Application' {
+      technology 'React'
+      description 'SPA providing chat interface and admin panel'
+
+      component chatUI 'Chat UI' {
+        description 'Chat interface for asking questions and viewing answers with sources'
+      }
+      component adminUI 'Admin Panel' {
+        description 'UI for managing connected drives, viewing index status, managing groups'
+      }
+      component authUI 'Auth UI' {
+        description 'Login via Google OAuth 2.0'
+      }
+    }
+
+    container backend 'Backend API' {
+      technology 'Java 21, Spring Boot 3'
+      description 'Modular monolith handling all business logic'
+
+      component authModule 'Auth Module' {
+        description 'Google OAuth 2.0 authentication, JWT session management, user registration'
+      }
+      component storageModule 'Storage Module' {
+        description 'Clients for Google Drive and Yandex Disk APIs. Manages OAuth tokens, file listing and downloading'
+      }
+      component indexingModule 'Indexing Module' {
+        description 'Document parsing (PDF, DOCX, TXT), text chunking with overlap, embedding generation, async indexing with scheduling'
+      }
+      component chatModule 'Chat Module' {
+        description 'RAG pipeline: vector search in pgvector, context assembly, LLM request, source attribution'
+      }
+      component adminModule 'Admin Module' {
+        description 'User and group management, drive connection management, index status monitoring'
+      }
+    }
+
+    container db 'PostgreSQL' {
+      technology 'PostgreSQL 16 + pgvector'
+      description 'Stores users, groups, documents metadata, OAuth tokens and vector embeddings'
+
+      database usersDb 'Users & Groups' {
+        description 'User accounts, group memberships, connected drives, OAuth tokens'
+      }
+      database vectorDb 'Vector Store' {
+        description 'Document chunks with vector embeddings (pgvector), metadata for filtering by user/group'
+      }
+    }
+  }
+
+  external googleAuth 'Google OAuth 2.0' {
+    description 'Google Identity Platform for user authentication'
+  }
+  external googleDrive 'Google Drive API' {
+    description 'API for accessing user files on Google Drive'
+  }
+  external yandexDisk 'Yandex Disk API' {
+    description 'API for accessing user files on Yandex Disk'
+  }
+  external llmApi 'LLM API' {
+    description 'OpenAI / Anthropic API for text generation and embeddings'
+    technology 'REST API'
+  }
+
+  // User relationships
+  user -> aiChat.frontend.chatUI 'asks questions' 'HTTPS'
+  user -> aiChat.frontend.adminUI 'manages drives and groups' 'HTTPS'
+  user -> aiChat.frontend.authUI 'logs in' 'HTTPS'
+
+  // Frontend -> Backend
+  aiChat.frontend.chatUI -> aiChat.backend.chatModule 'sends questions' 'REST API'
+  aiChat.frontend.adminUI -> aiChat.backend.adminModule 'manages settings' 'REST API'
+  aiChat.frontend.authUI -> aiChat.backend.authModule 'authenticates' 'REST API'
+
+  // Backend internal
+  aiChat.backend.chatModule -> aiChat.backend.indexingModule 'searches relevant chunks'
+  aiChat.backend.adminModule -> aiChat.backend.storageModule 'triggers sync'
+  aiChat.backend.indexingModule -> aiChat.backend.storageModule 'downloads files'
+
+  // Backend -> Database
+  aiChat.backend.authModule -> aiChat.db.usersDb 'reads/writes users' 'JDBC'
+  aiChat.backend.adminModule -> aiChat.db.usersDb 'reads/writes groups, drives' 'JDBC'
+  aiChat.backend.indexingModule -> aiChat.db.vectorDb 'stores/queries embeddings' 'JDBC + pgvector'
+  aiChat.backend.chatModule -> aiChat.db.vectorDb 'similarity search' 'JDBC + pgvector'
+
+  // Backend -> External
+  aiChat.backend.authModule -> googleAuth 'OAuth 2.0 flow' 'HTTPS'
+  aiChat.backend.storageModule -> googleDrive 'lists and downloads files' 'HTTPS'
+  aiChat.backend.storageModule -> yandexDisk 'lists and downloads files' 'HTTPS'
+  aiChat.backend.indexingModule -> llmApi 'generates embeddings' 'HTTPS'
+  aiChat.backend.chatModule -> llmApi 'generates answers' 'HTTPS'
+}
+

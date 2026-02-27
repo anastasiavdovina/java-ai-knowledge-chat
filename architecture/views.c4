@@ -1,0 +1,123 @@
+views {
+
+  // C1: System Context — high-level view
+  view index {
+    title 'AI Knowledge Base Chat — System Context'
+    description 'High-level overview: users, the system, and external services'
+
+    include
+      user,
+      aiChat,
+      googleAuth,
+      googleDrive,
+      yandexDisk,
+      llmApi
+
+    style user {
+      color green
+    }
+    style aiChat {
+      color primary
+    }
+    style googleAuth, googleDrive, yandexDisk, llmApi {
+      color muted
+    }
+  }
+
+  // C2: Container view — what's inside the system
+  view containers of aiChat {
+    title 'AI Knowledge Base Chat — Containers'
+    description 'Internal containers: Frontend, Backend, Database and their external dependencies'
+
+    include
+      *,
+      googleAuth,
+      googleDrive,
+      yandexDisk,
+      llmApi
+
+    style frontend {
+      color green
+    }
+    style backend {
+      color primary
+    }
+    style db {
+      color amber
+    }
+    style googleAuth, googleDrive, yandexDisk, llmApi {
+      color muted
+    }
+  }
+
+  // C3: Backend components
+  view backendComponents of aiChat.backend {
+    title 'Backend — Component Diagram'
+    description 'Internal modules of the Spring Boot backend'
+
+    include
+      *,
+      aiChat.frontend.chatUI,
+      aiChat.frontend.adminUI,
+      aiChat.frontend.authUI,
+      aiChat.db.usersDb,
+      aiChat.db.vectorDb,
+      googleAuth,
+      googleDrive,
+      yandexDisk,
+      llmApi
+
+    style aiChat.frontend.chatUI, aiChat.frontend.adminUI, aiChat.frontend.authUI {
+      color green
+    }
+    style authModule, storageModule, indexingModule, chatModule, adminModule {
+      color primary
+    }
+    style aiChat.db.usersDb, aiChat.db.vectorDb {
+      color amber
+    }
+    style googleAuth, googleDrive, yandexDisk, llmApi {
+      color muted
+    }
+  }
+
+  // C3: Frontend components
+  view frontendComponents of aiChat.frontend {
+    title 'Frontend — Component Diagram'
+    description 'React SPA components'
+
+    include
+      *,
+      aiChat.backend.chatModule,
+      aiChat.backend.adminModule,
+      aiChat.backend.authModule
+
+    style chatUI, adminUI, authUI {
+      color green
+    }
+    style aiChat.backend.chatModule, aiChat.backend.adminModule, aiChat.backend.authModule {
+      color primary
+    }
+  }
+
+  // C3: Database components
+  view databaseComponents of aiChat.db {
+    title 'Database — Component Diagram'
+    description 'PostgreSQL with pgvector: data stores'
+
+    include
+      *,
+      aiChat.backend.authModule,
+      aiChat.backend.adminModule,
+      aiChat.backend.indexingModule,
+      aiChat.backend.chatModule
+
+    style usersDb, vectorDb {
+      color amber
+    }
+    style aiChat.backend.authModule, aiChat.backend.adminModule, aiChat.backend.indexingModule, aiChat.backend.chatModule {
+      color primary
+    }
+  }
+}
+
